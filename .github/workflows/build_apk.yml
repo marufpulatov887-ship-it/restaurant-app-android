@@ -9,8 +9,38 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Build with Buildozer
-      uses: ArtemSBulgakov/buildozer-action@v1
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        workdir: '.'
-        buildozer_version: 'stable'
+        python-version: '3.9'
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y git zip unzip openjdk-8-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        
+    - name: Install Buildozer
+      run: pip install buildozer
+        
+    - name: Create minimal buildozer.spec
+      run: |
+        cat > buildozer.spec << 'EOF'
+[app]
+title = RestaurantApp
+package.name = restaurant
+package.domain = org.test
+source.dir = .
+version = 1.0
+requirements = python3,kivy
+android.permissions = INTERNET
+EOF
+        
+    - name: Build APK
+      run: |
+        yes | buildozer android debug
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: restaurant-apk
+        path: bin/*.apk
