@@ -1,51 +1,16 @@
-name: Build Android APK
+name: Build APK
 
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v3
+    
+    - name: Build with Buildozer
+      uses: ArtemSBulgakov/buildozer-action@v1
       with:
-        python-version: '3.9'
-        
-    - name: Install system dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y git zip unzip openjdk-8-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
-        
-    - name: Install Buildozer
-      run: pip install buildozer
-        
-    - name: Create buildozer.spec
-      run: |
-        cat > buildozer.spec << 'EOF'
-[app]
-title = Ресторан Гурман
-package.name = restaurant
-package.domain = org.restaurant
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,json
-version = 1.0
-requirements = python3,kivy
-android.permissions = INTERNET
-EOF
-        
-    - name: Build APK
-      run: |
-        yes | buildozer android debug
-        
-    - name: Upload APK
-      uses: actions/upload-artifact@v3
-      with:
-        name: restaurant-app
-        path: bin/*.apk
+        workdir: '.'
+        buildozer_version: 'stable'
